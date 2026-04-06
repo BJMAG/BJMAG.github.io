@@ -4,15 +4,22 @@ document.getElementById("formConsulta").addEventListener("submit", async (e) => 
   const formData = new FormData(e.target);
   const data = Object.fromEntries(formData);
 
-  console.log(data);
+  console.log("Enviando:", data);
 
-  await fetch("https://TU-BACKEND.onrender.com/consultas", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify(data)
-  });
+  try {
+    const res = await fetch("http://localhost:3000/consultas", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(data)
+    });
 
-  alert("Consulta guardada");
+    const result = await res.json();
+
+    alert("Consulta guardada");
+  } catch (error) {
+    console.error(error);
+    alert("Error al guardar");
+  }
 });
