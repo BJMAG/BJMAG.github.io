@@ -1,14 +1,9 @@
-// ── app.js ──────────────────────────────────────────────────
-// Conexión entre veterinaria.html y el backend Node/MySQL
-// ────────────────────────────────────────────────────────────
-
 const API = 'http://localhost:3000';
 
-// Convierte la fila de MySQL al formato que usa el HTML (D.consultas)
 const mapConsulta = r => ({
   id:  r.id,
   pac: r.paciente_id,
-  fec: r.fecha,
+  fec: r.fecha ? r.fecha.split('T')[0] : '',  // quita el T05:00:00.000Z
   mot: r.motivo,
   dia: r.diagnostico,
   tra: r.tratamiento,
@@ -16,21 +11,20 @@ const mapConsulta = r => ({
   cos: Number(r.costo_total),
   pag: Number(r.monto_pagado),
   mp:  r.metodo_pago,
-  prx: r.proxima_cita
+  prx: r.proxima_cita ? r.proxima_cita.split('T')[0] : ''
 });
 
-// Carga consultas desde MySQL al arrancar
 async function cargarConsultas() {
   try {
     const rows = await fetch(`${API}/consultas`).then(r => r.json());
     D.consultas = rows.map(mapConsulta);
     renderAll();
+    console.log('✓ Consultas cargadas desde MySQL:', D.consultas.length);
   } catch (e) {
     console.warn('Backend no disponible, usando datos locales');
   }
 }
 
-// Reemplaza guarCon() que está en el HTML
 async function guarCon() {
   const cos = parseFloat(_('k-c').value) || 0;
   const ab  = Math.min(parseFloat(_('k-a').value) || 0, cos);
@@ -58,8 +52,12 @@ async function guarCon() {
     if (!res.ok) throw new Error(await res.text());
     const { id } = await res.json();
 
-    // Agregar al array local con el id que devolvió MySQL
-    D.consultas.push({ ...mapConsulta({ ...payload, id, monto_pagado: ab, costo_total: cos }) });
+    D.consultas.push(mapConsulta({
+      ...payload,
+      id,
+      costo_total:  cos,
+      monto_pagado: ab
+    }));
 
     cerrar('mCon');
     saveData();
@@ -67,22 +65,10 @@ async function guarCon() {
     toast('✓ Consulta guardada en base de datos');
 
   } catch (e) {
-    console.error('Error guardando consulta:', e);
-    // Fallback: guarda solo local si el servidor no responde
-    D.consultas.push({
-      id: IDS.k++,
-      pac: parseInt(_('k-p').value),
-      fec: _('k-f').value, mot: _('k-m').value,
-      dia: _('k-d').value, tra: _('k-t').value,
-      vet: _('k-v').value, cos, pag: ab,
-      mp: _('k-pg').value, prx: _('k-x').value
-    });
-    cerrar('mCon');
-    saveData();
-    renderAll();
-    toast('⚠ Guardado local (sin conexión al servidor)', 'var(--shop)');
+    console.error('Error:', e);
+    toast('⚠ Error conectando con el servidor', 'var(--danger)');
   }
 }
 
-// Arranca cargando datos reales desde MySQL
+// Arranca cargando desde MySQL
 cargarConsultas();
