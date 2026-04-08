@@ -560,11 +560,18 @@ select option{background:var(--surface2);}
     <div class="fgr"><label>Nombre</label><input id="p-n" placeholder="Max"/></div>
     <div class="fgr"><label>Especie</label><select id="p-e"><option>Perro</option><option>Gato</option><option>Ave</option><option>Conejo</option><option>Otro</option></select></div>
     <div class="fgr"><label>Raza</label><input id="p-r" placeholder="Golden Retriever"/></div>
-    <div class="fgr"><label>Edad</label><input id="p-a" placeholder="3 años"/></div>
     <div class="fgr"><label>Peso (kg)</label><input id="p-w" placeholder="12.5"/></div>
     <div class="fgr"><label>Color</label><input id="p-c" placeholder="Dorado"/></div>
-    <div class="fgr"><label>Dueño</label><select id="p-d"></select></div>
-    <div class="fgr"><label>Fecha nac.</label><input id="p-f" type="date"/></div>
+    <div class="fgr full">
+      <label>Propietario</label>
+      <div style="position:relative">
+        <input id="p-d" placeholder="Busca por nombre..." oninput="filtPropietarios(this.value)" autocomplete="off"/>
+        <div id="p-d-list" style="position:absolute;top:100%;left:0;right:0;background:var(--surface2);border:1px solid var(--border);border-top:none;border-radius:0 0 8px 8px;max-height:150px;overflow-y:auto;display:none;z-index:10"></div>
+      </div>
+      <input id="p-d-id" type="hidden" value=""/>
+    </div>
+    <div class="fgr"><label>Fecha nac.</label><input id="p-f" type="date" oninput="calcEdad()"/></div>
+    <div class="fgr"><label>Edad calculada</label><input id="p-edad-calc" type="text" readonly placeholder="Se calculará automáticamente" style="background:var(--surface);cursor:not-allowed"/></div>
     <div class="fgr full"><label>Observaciones</label><textarea id="p-o" placeholder="Alergias, condiciones especiales..."></textarea></div>
   </div>
   <div class="ma"><button class="btn btn-n" onclick="cerrar('mPac')">Cancelar</button><button class="btn btn-v" onclick="guarPac()">Guardar</button></div>
