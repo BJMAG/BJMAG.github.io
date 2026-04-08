@@ -1211,6 +1211,30 @@ function guarAbono() {
 // SELECTS / GUARDAR / ELIMINAR
 // ════════════════════════════════════════════════════════════
 
+
+function filtPropietarios(q){
+  const lista=_('p-d-list');
+  if(!q.trim()){lista.style.display='none';return;}
+  const filt=D.clientes.filter(c=>c.n.toLowerCase().includes(q.toLowerCase()));
+  lista.innerHTML=filt.map(c=>`<div style="padding:8px 12px;cursor:pointer;border-bottom:1px solid var(--border)" onclick="selPropietario(${c.id},'${c.n.replace(/'/g,"\\'")})">${c.n}</div>`).join('');
+  lista.style.display=filt.length?'block':'none';
+}     
+function selPropietario(id,nom){
+  _('p-d').value=nom;
+  _('p-d-id').value=id;
+  _('p-d-list').style.display='none';
+}
+function calcEdad(){
+  const fnac=_('p-f').value;
+  if(!fnac){_('p-edad-calc').value='';return;}
+  const hoy=new Date();const nac=new Date(fnac);
+  let años=hoy.getFullYear()-nac.getFullYear();
+  const m=hoy.getMonth()-nac.getMonth();
+  if(m<0||(m===0&&hoy.getDate()<nac.getDate()))años--;
+  const meses=(hoy.getMonth()-nac.getMonth()+12)%12;
+  _('p-edad-calc').value=años>0?`${años} año${años!==1?'s':''} ${meses} mes${meses!==1?'es':''}`:meses>0?`${meses} mes${meses!==1?'es':''}`:hoy.getDate()-nac.getDate()+' días';
+}
+     
 function updSels() {
   const cl = D.clientes.map(c => `<option value="${c.id}">${c.n}</option>`).join('');
   const pa = D.pacientes.map(p => `<option value="${p.id}">${p.n} (${p.r})</option>`).join('');
@@ -1221,7 +1245,27 @@ function updSels() {
 }
 
 function guarCli() { const n = _('c-n').value.trim(); if (!n) { toast('⚠ Ingresa el nombre', 'var(--danger)'); return; } D.clientes.push({id: IDS.c++, n, t: _('c-t').value, e: _('c-e').value, d: _('c-d').value, cc: _('c-c').value, f: _('c-f').value}); cerrar('mCli'); saveData(); renderAll(); toast('✓ Cliente registrado'); }
-function guarPac() { const n = _('p-n').value.trim(); if (!n) { toast('⚠ Ingresa el nombre', 'var(--danger)'); return; } D.pacientes.push({id: IDS.p++, n, esp: _('p-e').value, r: _('p-r').value, edad: _('p-a').value, w: _('p-w').value, col: _('p-c').value, due: parseInt(_('p-d').value), fnac: _('p-f').value, obs: _('p-o').value}); cerrar('mPac'); saveData(); renderAll(); toast('✓ Paciente registrado'); }
+function guarPac(){
+  const n=_('p-n').value.trim();
+  if(!n){toast('⚠ Ingresa el nombre','var(--danger)');return;}
+  const due=parseInt(_('p-d-id').value);
+  if(!due){toast('⚠ Selecciona un propietario','var(--danger)');return;}
+  D.pacientes.push({
+    id:IDS.p++,
+    n,
+    esp:_('p-e').value,
+    r:_('p-r').value,
+    edad:_('p-edad-calc').value,
+    w:_('p-w').value,
+    col:_('p-c').value,
+    due,
+    fnac:_('p-f').value,
+    obs:_('p-o').value
+  });
+  cerrar('mPac');
+  renderAll();
+  toast('✓ Paciente registrado');
+}
 function guarCon() { const cs = parseFloat(_('k-c').value) || 0, ab = Math.min(parseFloat(_('k-a').value) || 0, cs); D.consultas.push({id: IDS.k++, pac: parseInt(_('k-p').value), fec: _('k-f').value, mot: _('k-m').value, dia: _('k-d').value, tra: _('k-t').value, vet: _('k-v').value, cos: cs, pag: ab, mp: _('k-pg').value, prx: _('k-x').value}); cerrar('mCon'); saveData(); renderAll(); toast('✓ Consulta registrada'); }
 function guarProd() { const n = _('pr-n').value.trim(); if (!n) { toast('⚠ Ingresa el nombre', 'var(--danger)'); return; } D.productos.push({id: IDS.pr++, n, cat: _('pr-c').value, pv: parseFloat(_('pr-pv').value) || 0, pc: parseFloat(_('pr-pc').value) || 0, stk: parseInt(_('pr-s').value) || 0, min: parseInt(_('pr-m').value) || 5, pro: _('pr-v').value, cod: _('pr-b').value || genCodV()}); cerrar('mProd'); saveData(); renderAll(); toast('✓ Producto agregado'); }
 function guarGroom() { const pr = parseFloat(_('g-p').value) || 0, ab = Math.min(parseFloat(_('g-a').value) || 0, pr); D.grooming.push({id: IDS.g++, mas: parseInt(_('g-m').value), fec: _('g-f').value, ser: _('g-s').value, gro: _('g-gr').value, dur: _('g-d').value, pre: pr, pag: ab, mp: _('g-pg').value, obs: _('g-o').value, est: 'Pendiente'}); cerrar('mGroom'); saveData(); renderAll(); toast('✓ Servicio agendado'); }
